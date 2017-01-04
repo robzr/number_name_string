@@ -33,9 +33,9 @@ NumberNameString << 1019           # "one thousand nineteen"
 The Convert class can be instantiated and used directly:
 
 ```ruby
-nnns = NumberNameString::Convert.new
-nnns[2000099]                          # "two million ninetynine"
-nnns << 'sixtytwo'                     # 62
+numname = NumberNameString::Convert.new
+numname[2000099]                          # "two million ninetynine"
+numname << 'sixtytwo'                     # 62
 ```
 
 Or, as a mixin directly on Fixnum and String classes:
