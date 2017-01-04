@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["rob@zwissler.org"]
 
   spec.summary       = %q{Converts to and from numbers and names (ie: 16.to_name == 'sixteen')}
-  spec.description   = %q{Converts to and from numbers and names (ie: 16.to_name == 'sixteen', 'forty.to_i == 40). Pure Ruby with no dependencies outside of the standard library.}
+  spec.description   = %q{Converts to and from numbers and names (ie: 16.to_name == 'sixteen', 'forty'.to_i == 40). Pure Ruby with no dependencies outside of the standard library.}
   spec.homepage      = "https://github.com/robzr/number_name_string"
   spec.license       = "MIT"
 
