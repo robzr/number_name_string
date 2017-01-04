@@ -1,8 +1,8 @@
 # NumberNameString
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/number_name_string`. To experiment with that code, run `bin/console` for an interactive prompt.
+Converts to and from numbers and their corresponding names (ie: 16.to_s == 'sixteen').
 
-TODO: Delete this and the text above, and describe your gem
+Pure Ruby with no dependencies outside of the standard library.
 
 ## Installation
 
@@ -22,7 +22,31 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+NumberNameString has a few interfaces, the simplest is using Module methods:
+
+```ruby
+NumberNameString[4032]             # "four hundred thirtytwo"
+NumberNameString['six thousand']   # 6000
+NumberNameString << 1019           # "one thousand nineteen"
+```
+
+The Convert class can be instantiated and used directly:
+
+```ruby
+nnns = NumberNameString::Convert.new
+nnns[2000099]                          # "two million ninetynine"
+nnns << 'sixtytwo'                     # 62
+```
+
+Or, as a mixin directly on Fixnum and String classes:
+
+```ruby
+include NumberNameString
+716.to_s                   # "seven hundred sixteen"
+"four thousand two".to_i   # 4002
+91346.to_comma             # "91,346"
+'five thousand'.to_comma   # "5,000"
+```
 
 ## Development
 
@@ -33,7 +57,6 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/number_name_string. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
-
 
 ## License
 
