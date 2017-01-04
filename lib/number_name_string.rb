@@ -9,6 +9,10 @@ module NumberNameString
     def to_comma
       self.to_s.to_comma
     end
+
+    def to_name
+      NumberNameString[self]
+    end
   end
 
   # Would be ideal if we could only add this functionality only if included
@@ -20,14 +24,10 @@ module NumberNameString
     end
 
     def to_i
+      # TODO: verify output may be a string and this is necessary
       result = NumberNameString[self]
-      # TODO: verify output of above may be a string
       result.is_a?(String) ? result.old_to_i : result
     end
-  end
-
-  def self.<<(num)
-    self[num]
   end
 
   def self.[](num)

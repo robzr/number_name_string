@@ -1,6 +1,6 @@
 # NumberNameString
 
-Converts to and from numbers and their corresponding names (ie: 16.to_s == 'sixteen').
+Converts to and from numbers and names (ie: 16.to_name == 'sixteen', 'forty.to_i == 40).
 
 Pure Ruby with no dependencies outside of the standard library.
 
@@ -27,7 +27,6 @@ NumberNameString has a few interfaces, the simplest is using Module methods:
 ```ruby
 NumberNameString[4032]             # "four hundred thirtytwo"
 NumberNameString['six thousand']   # 6000
-NumberNameString << 1019           # "one thousand nineteen"
 ```
 
 The Convert class can be instantiated and used directly:
@@ -35,14 +34,14 @@ The Convert class can be instantiated and used directly:
 ```ruby
 numname = NumberNameString::Convert.new
 numname[2000099]                          # "two million ninetynine"
-numname << 'sixtytwo'                     # 62
+numname['sixtytwo']                       # 62
 ```
 
 Or, as a mixin directly on Fixnum and String classes:
 
 ```ruby
 include NumberNameString
-716.to_s                   # "seven hundred sixteen"
+716.to_name                # "seven hundred sixteen"
 "four thousand two".to_i   # 4002
 91346.to_comma             # "91,346"
 'five thousand'.to_comma   # "5,000"
