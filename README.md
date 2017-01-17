@@ -1,6 +1,6 @@
 # NumberNameString
 
-Converts to and from numbers and names (ie: 16.to_name == 'sixteen', 'forty.to_i == 40).
+Converts between numbers and their cardinal (ex: two) and ordinal (ex: second) names.
 
 Pure Ruby with no dependencies outside of the standard library.
 
@@ -41,7 +41,8 @@ Or, as a mixin directly on Fixnum and String classes:
 
 ```ruby
 include NumberNameString
-716.to_name                # "seven hundred sixteen"
+716.to_cardinal            # "seven hundred sixteen"
+716.to_ordinal             # "seven hundred sixteenth"
 "four thousand two".to_i   # 4002
 91346.to_comma             # "91,346"
 'five thousand'.to_comma   # "5,000"
@@ -55,7 +56,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/number_name_string. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/robzr/number_name_string. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
 ## License
 

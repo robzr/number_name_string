@@ -1,26 +1,20 @@
 module NumberNameString
+  # Handles conversion logic, takes full number (string or numeric), parses
+  # and accumulates results from lookup tables
   class Convert
-    #
-    # TODO: convert to arrays for multiple spellings
-    #  - [forty, fourty]
-    #  - [hundred, hundered]
-    #
-    ONES = %W{ #{} one two three four five six seven eight nine }
-    ONES_ZERO = %W{ zero one two three four five six seven eight nine }
-    TEENS = %w{ ten eleven twelve thirteen fourteen fifteen sixteen
-                seventeen eighteen nineteen } 
-    TENS = %W{ #{} #{} twenty thirty forty fifty sixty seventy eighty ninety }
-    SCALE = %W{ #{} thousand million billion trillion quadrillion quintillion
-      sextillion septillion octillion nonillion decillion undecillion duodecillion
-      tredecillion quattuordecillion quindecillion sexdecillion septendecillion
-      octodecillion novemdecillion vigintillion }
-    SCALE_MAX = (SCALE.length - 1) * 3
+    def initialize(num = nil)
+      @lookup = Lookup.instance
+      @num = num
+      @num_struct = Struct.new(:word, :type, :number) 
+    end
 
-    def [](arg)
+    def [](arg = @num)
       if arg.is_a? Fixnum
-        to_s arg
+        num_to_string arg
       elsif arg.is_a? String 
-        to_i arg
+        string_to_num arg
+      elsif arg.is_a? Symbol 
+        string_to_num arg.to_s
       else
         raise NumberNameStringError.new("Invalid arg type: #{arg.class.name}")
       end
@@ -28,112 +22,88 @@ module NumberNameString
 
     alias << []
 
-    def to_i(arg)
-      num = 0
-      words = arg.downcase.gsub('-', '').split(/\s+/)
-      while word = words.shift
-        accum = 0
-        # (sub_hundred | ones(false) hundred [sub_hundred] )[scale]]
-        if sub_hundred?(word)
-          if ones?(word, false) && hundred?(words[0])
-            accum += ones?(word) * 100
-            words.shift
-            word = words.shift
-          else
-            accum += sub_hundred?(word)
-          end
-          word = words.shift
-          if scale? word      
-            accum *= scale? word
-          end
+    # Converts a string to a number
+    #
+    # @param arg [String] number to convert
+    # @returns [Integer] number
+    def string_to_num(arg = @num)
+      total = 0
+      triplet = Triplet.new
+      words = num_string_to_array arg
+      marker = words.length
+      while marker > 0 
+        marker -= 1
+        word = words[marker]
+        if word.type == :number
+          triplet << word.number
         end
-#        puts "accum: #{accum}"
-        num += accum
+        if word.type == :scale || marker == 0
+          triplet.scale = word.number if word.type == :scale
+          total += triplet.to_i
+          triplet.reset
+        end
       end
-      num
+      total
     end
 
-    def to_s(num, include_zero = true)
-      case digits = num.to_s.length
-      when 1
-        include_zero ? ONES_ZERO[num] : ONES[num]
-      when 2
-        num < 20 ? TEENS[num - 10] : "#{TENS[num / 10]}#{ONES[num % 10]}"
-      when 3
-        "#{ONES[num / 100]} hundred#{space_pad(to_s(num % 100, false))}"
-      when (4..SCALE_MAX)
-        zeros = 10 ** (((digits - 1) / 3) * 3)
-        "%s%s%s" % [to_s(num / zeros, false),
-                    space_pad(SCALE[(digits - 1) / 3]),
-                    space_pad(to_s(num % zeros, false))]
-      else
-        raise NumberNameStringError.new('Number out of range')
-      end
+    # Converts a number to a string
+    #
+    # @param num [Integer] number to convert
+    # @param type [Symbol] convert to type :cardinal or :ordinal
+    # @returns [String] name of number
+    def num_to_string(num = @num, type = :cardinal)
+      name = ''
+      num_to_triplets(num).each_with_index.reverse_each do |triplet, index| 
+        name += " #{name_triplet triplet} #{SCALES[index]}" if triplet > 0
+      end 
+      name == '' ? 'zero' : name.sub(/^\s*/, '').sub(/\s*$/, '')
     end
 
     private
 
-    # ONES = %W{ #{} one two three four five six seven eight nine }
-    # ONES_ZERO = %W{ zero one two three four five six seven eight nine }
-    # TEENS = %w{ ten eleven twelve thirteen fourteen fifteen sixteen
-    #   seventeen eighteen nineteen }
-    # TENS = %W{ #{} #{} twenty thirty fourty fifty sixty seventy eighty ninety }
-    # SCALE = %W{ #{} thousand million billion trillion quadrillion quintillion
-    
-    def hundred?(word)
-      word == 'hundred' && 100
+    # Cleans and splits string
+    #
+    # @param arg [String] string to split & convert
+    # @returns [Array] array of symbols
+    def clean_and_split(arg)
+      arg.downcase
+        .gsub('-', '')
+        .gsub(/\band\b/, '')
+        .split(/\s+/)
+        .map { |word| word.to_sym }
     end
 
-    def number?(word)
-      ones?(word) || teens?(word) || tens?(word) || hundred?(word)
-    end
-
-    def ones?(word, with_zero = true)
-      if with_zero
-        ONES_ZERO.find_index word
+    # Converts a triplet (1-3 digit number) to a string
+    #
+    # @param arg [Integer] number to convert
+    # @param type [Symbol] :cardinal or :ordinal
+    # @returns [String] name of number
+    def name_triplet(num, type = :cardinal)
+      if num >= 100
+        name = "#{@lookup.cardinal(num / 100)} hundred"
+        name += " #{@lookup.cardinal(num % 100)}" unless num % 100 == 0
+        name
       else
-        ONES.find_index word
+        @lookup.cardinal num
       end
     end
 
-    def scale?(word)
-      _ = SCALE.find_index word
-      10 ** (_ * 3) if _ 
-    end
-
-    def space_pad(arg)
-      if arg.is_a?(NilClass) || arg == ''
-        ''
-      elsif arg =~ /^\s/
-        arg
+    def num_to_triplets(num = @num)
+      str = num.to_s
+      if str.length % 3 == 0
+        str
       else
-        " #{arg}"
+        str.rjust((3 - str.length % 3) + str.length, '0')
+      end.scan(/\d{3}/)
+        .map(&:to_i)
+        .reverse
+    end
+
+    def num_string_to_array(arg)
+      clean_and_split(arg).reverse.map do |word| 
+        number, type = @lookup.number word
+        @num_struct.new(word, type, number)
       end
-    end
-
-    def sub_hundred?(word)
-      ones?(word) || teens?(word) || tens?(word)
-    end
-
-    def teens?(word)
-      _ = TEENS.find_index word
-      _ + 10 if _
-    end
-
-    def tens?(word)
-      if TENS.find_index(word)
-        TENS.find_index(word) * 10
-      elsif tens_prefix?(word)
-        prefix = tens_prefix?(word)
-        suffix = word.slice(prefix.length, 100)
-        if ones?(suffix, false)
-          TENS.find_index(prefix) * 10 + ones?(suffix, false)
-        end
-      end
-    end
-
-    def tens_prefix?(word)
-      TENS.select { |prefix| prefix != "" && word =~ /^#{prefix}/ }.first
     end
   end
 end
